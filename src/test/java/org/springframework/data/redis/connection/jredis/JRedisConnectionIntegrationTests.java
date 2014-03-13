@@ -778,4 +778,12 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 		super.testGetTimeShouldRequestServerTime();
 	}
 
+	/**
+	 * @see DATAREDIS-271
+	 */
+	@Test(expected = UnsupportedOperationException.class)
+	public void testPsetEx() throws Exception {
+		super.testPsetEx();
+	}
+
 }

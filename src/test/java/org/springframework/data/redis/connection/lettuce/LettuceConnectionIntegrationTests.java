@@ -276,4 +276,13 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 			factory2.destroy();
 		}
 	}
+
+	/**
+	 * @see DATAREDIS-271
+	 */
+	@Override
+	@Test(expected = UnsupportedOperationException.class)
+	public void testPsetEx() throws Exception {
+		super.testPsetEx();
+	}
 }

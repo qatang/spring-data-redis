@@ -82,4 +82,13 @@ public class LettuceConnectionPipelineTxIntegrationTests extends LettuceConnecti
 		// Return exec results and this test should behave exactly like its superclass
 		return txResults;
 	}
+
+	/**
+	 * @see DATAREDIS-271
+	 */
+	@Override
+	@Test(expected = UnsupportedOperationException.class)
+	public void testPsetEx() throws Exception {
+		super.testPsetEx();
+	}
 }
