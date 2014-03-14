@@ -76,12 +76,4 @@ public class LettuceConnectionTransactionIntegrationTests extends AbstractConnec
 		super.testSelect();
 	}
 
-	/**
-	 * @see DATAREDIS-271
-	 */
-	@Override
-	@Test(expected = UnsupportedOperationException.class)
-	public void testPsetEx() throws Exception {
-		super.testPsetEx();
-	}
 }

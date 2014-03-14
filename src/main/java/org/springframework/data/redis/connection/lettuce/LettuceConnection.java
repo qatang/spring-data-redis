@@ -51,6 +51,7 @@ import org.springframework.util.ObjectUtils;
 import com.lambdaworks.redis.RedisAsyncConnection;
 import com.lambdaworks.redis.RedisClient;
 import com.lambdaworks.redis.RedisException;
+import com.lambdaworks.redis.ScriptOutputType;
 import com.lambdaworks.redis.SortArgs;
 import com.lambdaworks.redis.ZStoreArgs;
 import com.lambdaworks.redis.codec.RedisCodec;
@@ -1163,13 +1164,46 @@ public class LettuceConnection implements RedisConnection {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
+	 * {@code pSetEx} is not directly supported and therefore emulated via {@literal lua script}.
+	 * 
+	 * @since 1.3
 	 * @see org.springframework.data.redis.connection.RedisStringCommands#pSetEx(byte[], long, byte[])
 	 */
 	@Override
 	public void pSetEx(byte[] key, long milliseconds, byte[] value) {
-		throw new UnsupportedOperationException();
+
+		byte[] script = createRedisScriptForPSetEx(key, milliseconds, value);
+		byte[][] emptyArgs = new byte[0][0];
+
+		try {
+			if (isPipelined()) {
+				pipeline(new LettuceStatusResult(getAsyncConnection().eval(script, ScriptOutputType.STATUS, emptyArgs,
+						emptyArgs)));
+				return;
+			}
+			if (isQueueing()) {
+				transaction(new LettuceTxStatusResult(getConnection().eval(script, ScriptOutputType.STATUS, emptyArgs,
+						emptyArgs)));
+				return;
+			}
+			this.eval(script, ReturnType.STATUS, 0);
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	private byte[] createRedisScriptForPSetEx(byte[] key, long milliseconds, byte[] value) {
+
+		StringBuilder sb = new StringBuilder("return redis.call('PSETEX'");
+		sb.append(",'");
+		sb.append(new String(key));
+		sb.append("',");
+		sb.append(milliseconds);
+		sb.append(",'");
+		sb.append(new String(value));
+		sb.append("')");
+		return sb.toString().getBytes();
 	}
 
 	public Boolean setNX(byte[] key, byte[] value) {
